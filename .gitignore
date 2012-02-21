@@ -1,0 +1,6 @@
+*.[oa]
+*~
+*.swt
+tmp
+bin
+*.pyc
