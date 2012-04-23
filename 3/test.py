@@ -34,13 +34,5 @@ class TestTreeWrapper(unittest.TestCase):
     def setUp(self):
         self.seq = AlignIO.read(identifier + "." + format_, format_)
 
-    def test_load_from_pfam_seq(self):
-        tree = TreeWrapper()
-        tree.load_from_pfam_seq(self.seq)
-        phylo_tree = tree.get_tree()
-        self.assertIsNotNone(phylo_tree, "No tree returned")
-        self.assertTrue(phylo_tree.rooted, "Silly is tree test")
-
-
 if __name__ == '__main__':
     unittest.main()

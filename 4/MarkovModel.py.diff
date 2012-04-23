@@ -1,0 +1,8 @@
+499c499
+<         traceback_seq = MutableSeq('', state_alphabet)
+---
+>         traceback_seq = []
+516c516
+<         return traceback_seq.toseq(), state_path_prob
+---
+>         return traceback_seq, state_path_prob

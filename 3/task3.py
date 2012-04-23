@@ -4,7 +4,6 @@
 
 #task3
 
-import Bio
 from Bio import AlignIO
 
 import urllib2
@@ -20,7 +19,7 @@ class TreeWrapper(object):
         pass
 
     def __str__(self):
-        return "Not implemented yet"
+        pass
 
 class ProteinFamily(object):
     tree = TreeWrapper()
@@ -29,7 +28,7 @@ class ProteinFamily(object):
         pfam_http_addr_prefix = \
             'http://pfam.sanger.ac.uk/family/alignment/download/format?acc='
         pfam_http_addr_sufix = \
-            '&alnType=full&format=stockholm&order=t&case=l&gaps=dashes'
+            '&alnType=seed&format=stockholm&order=t&case=l&gaps=dashes'
         self.identifier = identifier
         url = pfam_http_addr_prefix + identifier + pfam_http_addr_sufix
         http_handler = urllib2.urlopen(url)
