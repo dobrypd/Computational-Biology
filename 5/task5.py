@@ -4,6 +4,8 @@ Piotr Dobrowolski
 Task 5
 """
 
+from Bio import SeqIO
+
 import random
 import sys
 
@@ -11,14 +13,14 @@ class FastaLoader(object):
     def __init__(self, filename):
         random.seed()
         self.sequences = {}
-        self._parse_file(filename)
+        self._parse_file(self._load_file(filename))
 
-    def _load_file(self):
+    def _load_file(self, filename):
         '''
         Opening file, and exception catch
         '''
         try:
-            return open(self.filename)
+            return open(filename)
         except IOError as (errno, strerr):
             print "I/O error while loading file({0}): {1}"\
                 .format(errno, strerr)
@@ -34,7 +36,7 @@ class FastaLoader(object):
 
     def random_sequence(self):
         return self.sequences.values()\
-            [random.randint(len(self.sequences))]
+            [random.randint(0, len(self.sequences)-1)]
 
 class PFAMManager(object):
     def __init__(self):
@@ -48,12 +50,20 @@ class ProteinMaker(object):
         self.seq = sequence
     def make(self):
         """Prepare all possible proteins"""
-        return []
+        normal_seq = self.seq
+        reversed_seq = self.seq.reverse_complement().complement()
+        return [normal_seq.translate(),
+                normal_seq[1:].translate(),
+                normal_seq[2:].translate(),
+                reversed_seq.translate(),
+                reversed_seq[1:].translate(),
+                reversed_seq[2:].translate()]
+                
 
 class BLASTManager(object):
-    def __init__(self):
-        pass
-    def search(self, sequence):
+    def __init__(self, sequence):
+        self.seq = sequence
+    def search(self):
         return []
 
 
@@ -69,7 +79,7 @@ def find_function(fasta_file):
     
     pm = ProteinMaker(seq)
     protein_seqs_frames = pm.make()
-    bm = BLASTManager()
+    bm = BLASTManager(seq)
     protein_seqs_blast = bm.search()
 
     for ps in protein_seqs_frames:
@@ -83,6 +93,6 @@ def find_function(fasta_file):
     return (found_using_frames, found_using_frames,
             found_using_blast | found_using_frames)
 
-if __name__ = '__main__':
-    for fn in sys.args[1:]:
+if __name__ == '__main__':
+    for fn in sys.argv[1:]:
         print find_function(fn)        
