@@ -11,7 +11,10 @@ from Bio.Blast import NCBIWWW,NCBIXML
 import urllib
 import urllib2
 
+from BeautifulSoup import BeautifulStoneSoup 
+
 import random
+import time
 import sys
 
 
@@ -50,18 +53,50 @@ class PFAMManager(object):
     def __init__(self):
         self.url = "http://pfam.sanger.ac.uk/search/sequence"
 
+    def parse_job(self, xml):
+        soup = BeautifulStoneSoup(xml)
+        return soup.result_url.string
+
     def load_pfam(self, sequence):
+        #REQUEST A JOB
         post = {}
         post['seq'] = sequence
+        #post['evalue'] = '10.0'
+        #post['ga'] = '1'
+        #post['searchBs'] = '0'
         post['output'] = 'xml'
         data = urllib.urlencode(post)
-        request = urllib2.Request(self.url, data)
-        response = urllib2.urlopen(request)
-        the_page = response.read()
-        return the_page
+        request_job = urllib2.Request(self.url, data)
+        response_job = urllib2.urlopen(request_job)
+        xml_job_info = response_job.read()
+
+        result_url = self.parse_job(xml_job_info)
+
+        #WAIT FOR DONE JOB
+        while(True):
+            request_result = urllib2.Request(result_url)
+            try:
+                response_result = urllib2.urlopen(request_result)
+                xml_result = response_result.read()
+            except urllib2.HTTPError as e:
+                print e.reason
+            except urllib2.URLError as e:
+                print e.reason
+
+            if not (xml_result == ''):
+                break
+            else:
+                time.sleep(1)
+
+        return xml_result
+
+    def parse_result(self, xml):
+        #soup = BeautifulStoneSoup(xml)
+        return (name, seq)
 
     def search(self, sequence):
-        return []
+        xml = load_pfam(sequence)
+        return self.parse_result(xml)
 
 class ProteinMaker(object):
     def __init__(self, sequence):
