@@ -4,23 +4,85 @@ Piotr Dobrowolski
 Task 5
 """
 
-class 
+import random
+import sys
+
+class FastaLoader(object):
+    def __init__(self, filename):
+        random.seed()
+        self.sequences = {}
+        self._parse_file(filename)
+
+    def _load_file(self):
+        '''
+        Opening file, and exception catch
+        '''
+        try:
+            return open(self.filename)
+        except IOError as (errno, strerr):
+            print "I/O error while loading file({0}): {1}"\
+                .format(errno, strerr)
+
+    def _parse_file(self, file_fasta):
+        '''
+        Loading sequences into dictionary from file, closing file
+        '''
+        fasta_sequences = SeqIO.parse(file_fasta, "fasta")
+        for sequence in fasta_sequences:
+            self.sequences[sequence.id] = sequence.seq
+        file_fasta.close()
+
+    def random_sequence(self):
+        return self.sequences.values()\
+            [random.randint(len(self.sequences))]
+
+class PFAMManager(object):
+    def __init__(self):
+        pass
+
+    def search(self, sequence):
+        return []
+
+class ProteinMaker(object):
+    def __init__(self, sequence):
+        self.seq = sequence
+    def make(self):
+        """Prepare all possible proteins"""
+        return []
+
+class BLASTManager(object):
+    def __init__(self):
+        pass
+    def search(self, sequence):
+        return []
+
 
 def find_function(fasta_file):
-    #load sequences from fasta file
-    #chose random sequence
-    
-    s = Seq...
+    fl = FastaLoader(fasta_file)
+    seq = fl.random_sequence()
     print "Chosen sequence: "
-    print s
+    print seq
+
+    pfam_m = PFAMManager()
+    found_using_blast = set()
+    found_using_frames = set()
     
-    #make DNAs normal, reversed, * 3 frames (only using frames)
+    pm = ProteinMaker(seq)
+    protein_seqs_frames = pm.make()
+    bm = BLASTManager()
+    protein_seqs_blast = bm.search()
 
-    #search function by PFAM WITH BLAST
-    b = []
-    #create frames
-    bf = []
-    #search function by PFAM WITH FRAMES
+    for ps in protein_seqs_frames:
+        found_using_frames.add(
+                pfam_m.search(ps))
 
-    #multiply b, bf
-    return (b, bf, mul(b, bf))
+    for ps in protein_seqs_blast:
+        found_using_blast.add(
+                pfam_m.search(ps))
+        
+    return (found_using_frames, found_using_frames,
+            found_using_blast | found_using_frames)
+
+if __name__ = '__main__':
+    for fn in sys.args[1:]:
+        print find_function(fn)        
