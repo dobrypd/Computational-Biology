@@ -8,6 +8,9 @@ from Bio import Seq
 from Bio import SeqIO
 from Bio.Blast import NCBIWWW,NCBIXML
 
+import urllib
+import urllib2
+
 import random
 import sys
 
@@ -45,7 +48,17 @@ class FastaLoader(object):
 
 class PFAMManager(object):
     def __init__(self):
-        pass
+        self.url = "http://pfam.sanger.ac.uk/search/sequence"
+
+    def load_pfam(self, sequence):
+        post = {}
+        post['seq'] = sequence
+        post['output'] = 'xml'
+        data = urllib.urlencode(post)
+        request = urllib2.Request(self.url, data)
+        response = urllib2.urlopen(request)
+        the_page = response.read()
+        return the_page
 
     def search(self, sequence):
         return []
