@@ -55,7 +55,11 @@ class PFAMManager(object):
 
     def parse_job(self, xml):
         soup = BeautifulStoneSoup(xml)
-        return soup.result_url.string
+        try:
+            urlname = soup.result_url.string
+        except NoneType as nt:
+            return None
+        return urlname
 
     def load_pfam(self, sequence):
         #REQUEST A JOB
@@ -67,10 +71,20 @@ class PFAMManager(object):
         post['output'] = 'xml'
         data = urllib.urlencode(post)
         request_job = urllib2.Request(self.url, data)
-        response_job = urllib2.urlopen(request_job)
-        xml_job_info = response_job.read()
+        try:
+            response_job = urllib2.urlopen(request_job)
+            xml_job_info = response_job.read()
+        except urllib2.HTTPError as e:
+            print e.reason
+            return None
+        except urllib2.URLError as e:
+            print e.reason
+            return None
 
         result_url = self.parse_job(xml_job_info)
+        
+        if not result_url:
+            return None
 
         #WAIT FOR DONE JOB
         while(True):
@@ -91,6 +105,8 @@ class PFAMManager(object):
         return xml_result
 
     def parse_match(self, match):
+        if not match:
+            return None
         return (match.attrs, match.seq.contents[1])
 
     def parse_result(self, xml):
@@ -136,7 +152,11 @@ class BLASTManager(object):
         ali = self.blast2subjects(blast_records, minimal_blast_score)
         seqs = []
         for a in ali:
-            seqs.append(Seq.Seq(a, Seq.Alphabet.ProteinAlphabet))
+            str_seq = ""
+            for i in a:
+                if not i == '-':
+                    str_seq + i
+            seqs.append(Seq.Seq(str_seq, Seq.Alphabet.ProteinAlphabet))
         return seqs
 
 
@@ -150,19 +170,35 @@ def find_function(fasta_file):
     found_using_blast = set()
     found_using_frames = set()
     
+    print "Makes protein..."
     pm = ProteinMaker(seq)
     protein_seqs_frames = pm.make()
+    print "Loading from BLAST..."
     bm = BLASTManager(seq)
     protein_seqs_blast = bm.search()
 
+    print "Searching pfam, part1: frames..."
+    lenn = len(protein_seqs_frames)
+    i = 0
     for ps in protein_seqs_frames:
-        found_using_frames.update(
+        if ps:
+            found_using_frames.update(
                 pfam_m.search(ps))
+        i += 1
+        print "{0}%".format(100 * float(i)/float(lenn))
 
+    print ''
+    print "Searching pfam, part2: blast..."
+    lenn = len(protein_seqs_blast)
+    i = 0
     for ps in protein_seqs_blast:
-        found_using_blast.update(
+        if ps:
+            found_using_blast.update(
                 pfam_m.search(ps))
-        
+        i += 1
+        print "{0}%".format(100 * float(i)/float(lenn))
+    print ''
+
     return (found_using_frames, found_using_frames,
             found_using_blast | found_using_frames)
 
