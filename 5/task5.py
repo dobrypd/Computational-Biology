@@ -5,9 +5,13 @@ Task 5
 """
 
 from Bio import SeqIO
+from Bio.Blast import NCBIWWW,NCBIXML
 
 import random
 import sys
+
+
+minimal_blast_score = 350.0
 
 class FastaLoader(object):
     def __init__(self, filename):
@@ -51,7 +55,7 @@ class ProteinMaker(object):
     def make(self):
         """Prepare all possible proteins"""
         normal_seq = self.seq
-        reversed_seq = self.seq.reverse_complement().complement()
+        reversed_seq = self.seq.complement()
         return [normal_seq.translate(),
                 normal_seq[1:].translate(),
                 normal_seq[2:].translate(),
@@ -59,12 +63,23 @@ class ProteinMaker(object):
                 reversed_seq[1:].translate(),
                 reversed_seq[2:].translate()]
                 
-
 class BLASTManager(object):
     def __init__(self, sequence):
         self.seq = sequence
+    def blast2subjects(self, blastrec, minscore):
+        """ Interpreting blastrec as list of subject, only with score greater
+        than minscore """
+        sbjcts = [] #pair (subject, score)
+        for align in blastrec.alignments:
+            for hsp in align.hsps:
+                """ add High Scoring Segment Pairs subject and score """
+                sbjcts.append((hsp.sbjct, hsp.score))
+        return [sbjct for sbjct, score in sbjcts if  score >= minscore]
+
     def search(self):
-        return []
+        res = NCBIWWW.qblast("blastn","nr",self.seq)
+        blast_records = NCBIXML.parse(res)
+        return self.blast2subjects(blast_records, minimal_blast_score)
 
 
 def find_function(fasta_file):
