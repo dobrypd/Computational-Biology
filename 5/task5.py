@@ -4,6 +4,7 @@ Piotr Dobrowolski
 Task 5
 """
 
+from Bio import Seq
 from Bio import SeqIO
 from Bio.Blast import NCBIWWW,NCBIXML
 
@@ -11,7 +12,7 @@ import random
 import sys
 
 
-minimal_blast_score = 350.0
+minimal_blast_score = 0.0
 
 class FastaLoader(object):
     def __init__(self, filename):
@@ -66,20 +67,25 @@ class ProteinMaker(object):
 class BLASTManager(object):
     def __init__(self, sequence):
         self.seq = sequence
-    def blast2subjects(self, blastrec, minscore):
+    def blast2subjects(self, blastrecs, minscore):
         """ Interpreting blastrec as list of subject, only with score greater
         than minscore """
         sbjcts = [] #pair (subject, score)
-        for align in blastrec.alignments:
-            for hsp in align.hsps:
-                """ add High Scoring Segment Pairs subject and score """
-                sbjcts.append((hsp.sbjct, hsp.score))
+        for blastrec in blastrecs:
+            for align in blastrec.alignments:
+                for hsp in align.hsps:
+                    """ add High Scoring Segment Pairs subject and score """
+                    sbjcts.append((hsp.sbjct, hsp.score))
         return [sbjct for sbjct, score in sbjcts if  score >= minscore]
 
     def search(self):
-        res = NCBIWWW.qblast("blastn","nr",self.seq)
+        res = NCBIWWW.qblast("blastx","nr",self.seq)
         blast_records = NCBIXML.parse(res)
-        return self.blast2subjects(blast_records, minimal_blast_score)
+        ali = self.blast2subjects(blast_records, minimal_blast_score)
+        seqs = []
+        for a in ali:
+            seqs.append(Seq.Seq(a, Seq.Alphabet.ProteinAlphabet))
+        return seqs
 
 
 def find_function(fasta_file):
