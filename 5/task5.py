@@ -90,12 +90,16 @@ class PFAMManager(object):
 
         return xml_result
 
+    def parse_match(self, match):
+        return (match.attrs, match.seq.contents[1])
+
     def parse_result(self, xml):
-        #soup = BeautifulStoneSoup(xml)
-        return (name, seq)
+        soup = BeautifulStoneSoup(xml)
+        matches = soup.findAll('match')
+        return map(self.parse_match, matches)
 
     def search(self, sequence):
-        xml = load_pfam(sequence)
+        xml = self.load_pfam(sequence)
         return self.parse_result(xml)
 
 class ProteinMaker(object):
@@ -152,11 +156,11 @@ def find_function(fasta_file):
     protein_seqs_blast = bm.search()
 
     for ps in protein_seqs_frames:
-        found_using_frames.add(
+        found_using_frames.update(
                 pfam_m.search(ps))
 
     for ps in protein_seqs_blast:
-        found_using_blast.add(
+        found_using_blast.update(
                 pfam_m.search(ps))
         
     return (found_using_frames, found_using_frames,
