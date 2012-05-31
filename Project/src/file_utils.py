@@ -2,8 +2,7 @@
 Computational Biology
 Main Project
 
-file_utils.py - classes and methods helps
-parse files.
+file_utils.py - classes and methods operating on files.
 
 Author: Piotr Dobrowolski
 no:     291528
